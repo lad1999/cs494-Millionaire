@@ -1,5 +1,6 @@
 import javax.management.remote.JMXServerErrorException;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -73,7 +74,6 @@ class ClientHandler extends Thread{
         while (true){
             try{
                 received = dis.readUTF();
-                System.out.println(received);
                 if (received.equals("ready")){
                     dos.writeUTF(question.get(i));
                     dos.flush();
@@ -103,6 +103,7 @@ class ClientHandler extends Thread{
                     if (received != null){
                         dos.writeUTF("You lose!");
                         dos.flush();
+                        s.close();
                         break;
                     }
                 }
@@ -120,7 +121,6 @@ public class Server extends JFrame implements ActionListener {
     static Socket con;
     static List<String> usernames = new ArrayList<>();
 
-    JButton button;
     JButton connect;
     private static JLabel label;
     JLabel text;
@@ -151,7 +151,7 @@ public class Server extends JFrame implements ActionListener {
             String message = dataInputStream.readUTF();
             if (usernames.isEmpty()){
                 usernames.add(message);
-                dataOutputStream.writeUTF("Hello "+message + ". You are player 1/" + players + ". There will be 30 questions in this game.");
+                dataOutputStream.writeUTF("<html>Hello "+message + ". You are player 1/" + players + ". There will be 30 questions in this game.</html>");
                 dataOutputStream.flush();
                 t = new ClientHandler(con, dataInputStream, dataOutputStream);
                 t.start();
@@ -165,7 +165,7 @@ public class Server extends JFrame implements ActionListener {
                 else{
                     if (usernames.size() == i){
                         usernames.add(message);
-                        dataOutputStream.writeUTF("Hello "+ message + ". You are player " +(i+1)+"/"+players + ". There will be 30 questions in this game.");
+                        dataOutputStream.writeUTF("<html>Hello "+ message + ". You are player " +(i+1)+"/"+players + ". There will be 30 questions in this game.</html>");
                         t = new ClientHandler(con, dataInputStream, dataOutputStream);
                         t.start();
                     }
@@ -189,14 +189,6 @@ public class Server extends JFrame implements ActionListener {
 
     private void initialize(){
         ImageIcon image = new ImageIcon("altp.jpg");
-
-        button = new JButton();
-        button.setBounds(250, 120, 175, 50);
-        button.setText("Start game");
-        button.addActionListener(this);
-        button.setFocusable(false);
-        button.setForeground(Color.red);
-        button.setFont(new Font("Arial", Font.BOLD, 22));
 
         connect = new JButton();
         connect.setBounds(75, 120, 175, 50);
@@ -235,7 +227,6 @@ public class Server extends JFrame implements ActionListener {
         this.setVisible(true);
         this.setSize(500, 400);
         this.add(panel);
-        this.add(button);
         this.add(connect);
         this.add(label);
         this.setIconImage(image.getImage());
