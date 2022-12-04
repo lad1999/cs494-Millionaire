@@ -17,6 +17,7 @@ class ClientHandler extends Thread{
     final DataInputStream dis;
     final DataOutputStream dos;
     final Socket s;
+    int i;
 
     List<String> question = new ArrayList<>();
     List<String> choiceA = new ArrayList<>();
@@ -24,12 +25,15 @@ class ClientHandler extends Thread{
     List<String> choiceC = new ArrayList<>();
     List<String> choiceD = new ArrayList<>();
     List<String> correct = new ArrayList<>();
-    int i = 0;
+    List<Integer> asked = new ArrayList<>();
+    Random random = new Random();
+    int rand = random.nextInt(30);
 
-    public ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos){
+    public ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos, int i){
         this.s = s;
         this.dis = dis;
         this.dos = dos;
+        this.i = i;
     }
 
     public void readQuestion() throws IOException {
@@ -63,6 +67,15 @@ class ClientHandler extends Thread{
         }
     }
 
+    public int randQuest(){
+        int quest = random.nextInt(30);
+        while (asked.contains(quest)){
+            quest = random.nextInt(30);
+        }
+        asked.add(quest);
+        return quest;
+    }
+
     @Override
     public void run() {
         String received;
@@ -75,28 +88,29 @@ class ClientHandler extends Thread{
             try{
                 received = dis.readUTF();
                 if (received.equals("ready")){
-                    dos.writeUTF(question.get(i));
+                    asked.add(rand);
+                    dos.writeUTF(question.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceA.get(i));
+                    dos.writeUTF(choiceA.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceB.get(i));
+                    dos.writeUTF(choiceB.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceC.get(i));
+                    dos.writeUTF(choiceC.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceD.get(i));
+                    dos.writeUTF(choiceD.get(rand));
                     dos.flush();
                 }
-                else if (received.equals(correct.get(i))){
-                    i++;
-                    dos.writeUTF(question.get(i));
+                else if (received.equals(correct.get(rand))){
+                    rand = randQuest();
+                    dos.writeUTF(question.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceA.get(i));
+                    dos.writeUTF(choiceA.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceB.get(i));
+                    dos.writeUTF(choiceB.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceC.get(i));
+                    dos.writeUTF(choiceC.get(rand));
                     dos.flush();
-                    dos.writeUTF(choiceD.get(i));
+                    dos.writeUTF(choiceD.get(rand));
                     dos.flush();
                 }
                 else{
@@ -153,7 +167,7 @@ public class Server extends JFrame implements ActionListener {
                 usernames.add(message);
                 dataOutputStream.writeUTF("<html>Hello "+message + ". You are player 1/" + players + ". There will be 30 questions in this game.</html>");
                 dataOutputStream.flush();
-                t = new ClientHandler(con, dataInputStream, dataOutputStream);
+                t = new ClientHandler(con, dataInputStream, dataOutputStream, i+1);
                 t.start();
             }
             else{
@@ -166,7 +180,7 @@ public class Server extends JFrame implements ActionListener {
                     if (usernames.size() == i){
                         usernames.add(message);
                         dataOutputStream.writeUTF("<html>Hello "+ message + ". You are player " +(i+1)+"/"+players + ". There will be 30 questions in this game.</html>");
-                        t = new ClientHandler(con, dataInputStream, dataOutputStream);
+                        t = new ClientHandler(con, dataInputStream, dataOutputStream, i+1);
                         t.start();
                     }
                 }
